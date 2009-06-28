@@ -11,27 +11,13 @@ public class Restructor {
 	public Restructor(String dataset){
 		db = new Database();
 		pars = new Parser(dataset,db);
-//		pars.parse();
-		ResultSet r = db.query_main("address", "molveno");
+		pars.parse();
+		String[] names = {"city"};
+		String[] values = {"molveno"};
+		ResultSet r = db.query_main(names, values);
 		try {
 			while (r.next()){
-				System.out.println(r.getInt("entity_id") + " " + r.getInt("rank"));
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		ResultSet s = db.query_second("address", "molveno");
-		try {
-			while (s.next()){
-				System.out.println(s.getInt("entity_id") + " " + s.getInt("rank"));
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		ResultSet t = db.query_third("address", "molveno");
-		try {
-			while (t.next()){
-				System.out.println(t.getInt("entity_id") + " " + t.getInt("rank"));
+				System.out.println(r.getInt("entity_id") + " " + r.getInt("ranking"));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();

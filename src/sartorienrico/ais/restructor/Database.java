@@ -61,45 +61,67 @@ public class Database {
 		return res;
 	}
 	
-	public ResultSet query_main(String name, String value){
+	public ResultSet query_main(String[] names, String[] values){
 		ResultSet res = null;
+		try {
+			st.executeUpdate("create temporary table results (entity_id integer, rank integer)");
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		for (int i = 0; i < names.length; i++){
+			query_first(names[i], values[i]);
+			query_second(names[i], values[i]);
+			query_third(names[i], values[i]);
+		}
+		String sql = "select entity_id, sum(rank) as ranking from results group by entity_id order by ranking desc";
+		try {
+			res = st.executeQuery(sql);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		return res;
+	}
+	
+	public int query_first(String name, String value){
+		int res = -1;
 		String sql = "select entity_id, 100 as rank from associations, pairs where pairs.pair_id = associations.pair_id and value = '"+value+"' and name = '"+name+"'";
 		try {
-			res = st.executeQuery(sql);
+			res = st.executeUpdate("insert into results "+sql);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		return res;
 	}
 	
-	public ResultSet query_second(String name, String value){
-		ResultSet res = null;
-		String con_sec = "attrs.path like '%"+name+"/%' and attrs.name != '"+name+"'";
+	public int query_second(String name, String value){
+		int res = -1;
+		String con_sec = "pairs.name in (select name from attrs where attrs.path like '%"+name+"/%' and attrs.name != '"+name+"')";
 		String sql = "select entity_id, 75 as rank from associations, pairs, attrs where associations.attr_id = attrs.attr_id and pairs.pair_id = associations.pair_id and value = '"+value+"' and "+con_sec;
 		try {
-			res = st.executeQuery(sql);
+			res = st.executeUpdate("insert into results "+sql);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		return res;
 	}
 	
-	public ResultSet query_third(String name, String value){
-		ResultSet res = null;
+	public int query_third(String name, String value){
+		int res = -1;
 		String sub_sql = "select t1.attr_id from attrs as t1, ( select * from attrs where name = '"+name+"' ) as t2 where t2.path like  concat('%/', t1.name, '/%') and t1.name != '"+name+"'";
 		String sql  = "select entity_id, 50 as rank from pairs, associations where pairs.pair_id  = associations.pair_id and value = '"+value+"' and associations.attr_id in ("+sub_sql+")";
 		try {
-			res = st.executeQuery(sql);
-		} catch (SQLException e){
+			res = st.executeUpdate("insert into results "+sql);
+		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		return res;
 	}
 	
 	public void close_db(){
-		//clear_table("associations");
-		//clear_table("pairs");
-		//clear_table("attrs");
+		clear_table("associations");
+		clear_table("pairs");
+		clear_table("attrs");
 		try {
 			con.close();
 		} catch (SQLException e) {
