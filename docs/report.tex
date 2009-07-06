@@ -167,6 +167,95 @@ of the problem to solve:
 \item Rank and organize the results;
 \end{itemize}
 
+\section{PROPOSED APPROACH}
+This section of the paper presents in further details the approach
+followed for giving a solution to the problem targeted. It will cover the
+three aspects introduced previously.
+
+In order to ease the implementation task is assumed that the input of the
+program, the database to be analyzed, is represented by an xml file, with
+no DTD attached. The root of the document is a tag entities which
+contains a set of tags entity which represent an entry of the database.
+Each tag entity has an unique attribute id which identifies an entry.
+
+An example input could be the following:
+
+\begin{verbatim}
+<entities>
+    <entity id="1">
+        <city>trento</city>
+        <street>sommarive</street>
+    </entity>
+</entities>
+\end{verbatim}
+
+Another possible way to represent the input could be using the JSON
+syntax, which could be more appropriate than xml for representing
+unstructured data. The common xml syntax has been preferred due to the
+wider selection of tools for parsing and operate on this language.
+
+The advantages in using JSON could be represented by a more lightweight
+database and the use of a syntax more data-oriented, which fit better the
+situation of an unstructured dataspace.
+
+The assumption on the identifiers position in the xml has been taken for
+simplifying the parsing task, and focus more attention on retrieving the
+relevant information from the database. This choice doesn't influence the
+accuracy of the query answering algorithm.
+
+\subsection{Relational Model}
+This section introduced the details of the structure used to store the
+data and perform the queries. As said before, the data are stored in a
+relational database. 
+
+The importance of relying on a database engine for storing and handling the
+data has a major importance in terms of performances. In fact a DBMS
+integrates a set of optimization algorithms and caching routines which can
+help maintaining the performances of the system at a good level.
+
+The base idea of the approach followed is to extract from the database two
+different kind of information. An entity in the dataspace, in fact,
+contains relevant information about itself, specified by the pairs
+(name, value), but it gives information even about the structure of the
+data, on how different attributes relate with each other.
+
+An example of this can be seen in the following code:
+
+\begin{verbatim}
+<entity id="1">
+    <car>
+        <model>punto</model>
+        <brand>fiat</brand>
+    </car>
+</entity>
+\end{verbatim}
+
+This entity in fact contains an element car which is composed by two
+different attributes, model and brand. Appears clear that exists a
+relation between the attribute model and car and between brand and car.
+The information that we can extract from this, about the structure of the
+data, is that the attributes model and brand can appear in the dataset as
+children of the attribute car.
+
+This kind of information is vital for the query answering task, in fact,
+using this prior knowledge we can return as a result for a query asking
+for entities with car = fiat even the following example: 
+
+\begin{verbatim}
+<entity id="2">
+    <model>punto</model>
+    <brand>fiat</brand>
+</entity>
+\end{verbatim}
+
+This entity doesn't refer explicitly to the car attribute, but the prior
+knowledge about the structure of the dataset gives the possibility to
+reach an higher accuracy for the query results.
+Obviously the relevance of this entity as a result of the query car = fiat
+is not the same as the one of the previous entry.
+
+The model implemented for deal with this kind of information is composed
+by three tables.
 
 
 \bibliographystyle{abbrv}
