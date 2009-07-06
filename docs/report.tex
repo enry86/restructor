@@ -1,5 +1,174 @@
 \documentclass{acm_proc_article-sp-sigmod07}
 
 \begin{document}
+\title{RESTRUCTOR: Performing queries on structurally heterogeneous
+dataspaces}
+\author{Sartori Enrico}
+\maketitle
 
+\begin{abstract}
+This work presents a framework, called RESTRUCTOR, which permits to
+perform queries on dataspaces characterized by structural heterogeneity.
+The system implemented builds a relational representation of the relevant
+informations contained in the dataset and uses this model for performing
+queries.
+
+The proposed model deals with differences at the structural level of the
+data, but not with the different syntactic representation of semantically
+equivalent attributes.
+
+This work describes in details the model used to represent the data, and
+the techniques used for the extraction of the query results from the
+dataspace.
+\end{abstract}
+
+\section{INTRODUCTION}
+A relevant part of the data in some particular environments as, for
+example, the internet, is characterized by a lack of a structure useful
+to perform queries and give a semantical meaning to the informations
+handled.
+
+In a similar environment the data are considered to be a list of
+identifiers with attached a set of pairs of the form (attribute name,
+value). This basilar structure can be more complex, with nested
+representation of the data.
+
+The aim of this work is to provide a system which can convert this simple
+structure in a relational model which can be used for performing queries.
+The main idea on which the implemented approach is based is the
+realization of two different structures: one for the storage of the data
+and a second, used for resolving the dependencies between attributes
+discovered in the dataset.
+
+The query task is accomplished by retrieving all the attributes linked to
+the one asked, through a lookup in the attributes structure.Then the
+retrieved attributes are compared with the value given, using the storage
+structure.
+
+The system implemented performs these operation by creating in a
+relational database a schema which can host this model, and using this
+representation for executing the queries.
+The interface exposed to the user accepts a simple query language, whose
+details will be presented later.
+
+Some assumption, like the way used for identifier specification and the
+language used for the implementation will be clarified in following
+sections.
+
+\section{RELATED WORK}
+One of the works which covers in major details the handling with
+heterogeneous datasets is \cite{kaufmann:integration}. This work gives a panoramic
+view on many different cases which can be encountered in data integration.
+
+The scope of this work is wider than the one of this paper, in fact, it
+presents techniques used for solving more general problems, like syntactic
+differences in the data representation models to integrate.
+
+Anyway it presents many approaches for identifying dependencies among
+attributes from different databases, these techniques can be useful even
+in the case of structural differences in the same database.
+
+This section of the work present three different groups of approaches:
+semantic based, object oriented or logic based.
+For each of these groups, many different approaches are presented.
+The approaches which are nearer to what is the aim of this paper are the
+semantical and the object oriented models.
+
+Another important section of this work describes how to deal with the
+problem of the effective generation of the integrated schema.
+
+More close to the problem addressed in this paper is the technique
+presented in \cite{dong:indexing}.
+In fact this work addresses the specific problem of performing queries
+over a dataspace characterized by being partially unstructured and
+heterogeneous.
+
+The solution provided by Dong and Halevy is the building of an indexing
+structure, which can be used for accessing the data matching the given
+query.
+
+The indexing structure presented in the paper, is stored in form of
+relational model, which permits to specify which entity owns some
+particular attributes.
+
+\section{PROBLEM STATEMENT}
+As said in the introduction the aim of this work is to provide support for
+performing queries over dataspaces presenting differences in the structure
+used for data representation.
+The system implemented doesn't deal with differences at a syntactic level,
+in fact it relies on the equality of attributes name for the
+identification of relations among attributes.
+
+Possible examples of heterogeneousness in data representation that the
+system can handle are in the form of the following examples:
+
+\begin{verbatim}
+entity 1
+    city : molveno
+    street : paganella
+
+entity 2
+    address :
+        city : molveno
+        street : paganella
+
+entity 3
+    address : molveno paganella 
+\end{verbatim}
+
+These three entities refers to the same real object, in fact the data
+contained is semantically equivalent, but it's represented using three
+different structures.
+
+It's not possible to query directly a similar database, in fact there is
+no direct correspondence between attributes from different entities.
+For a human reader, is anyway clear how city and street are components of
+the attribute address. This relation has to be considered when, for
+example, an user asks for the entities with attribute address associated
+to a specific value.
+
+The same is valid for the inverse case, e.g. when the user asks for the
+attribute city even the entities with attribute address matching the query
+specification has to be returned.
+
+The model in the previous example can be made more complex by adding a new
+entity like the following:
+
+\begin{verbatim}
+entity 4
+    lives:
+        address :
+            city : molveno
+            street : paganella
+    
+    works:
+        city : trento
+         
+\end{verbatim}
+
+Adding this case a new layer of inclusion is present, in fact now city
+appears as member of address, but even as component of the attribute
+lives. 
+
+It appears clear that different kind of result should have a different
+weight in the final result of the query. For this reason the system
+associates different ranks to entities returned in the different cases.
+
+Obviously a higher rank is given to an entity returned in case of exact
+correspondence of the name and the value of the attribute searched.
+Results retrieved by looking for correspondences in the linked attributes,
+instead, are ranked with a lower value.
+
+Summarizing what said before, is possible to identify three main aspects
+of the problem to solve:
+\begin{itemize}
+\item Insertion of the data in the relational model;
+\item Performing queries on the model created;
+\item Rank and organize the results;
+\end{itemize}
+
+
+
+\bibliographystyle{abbrv}
+\bibliography{report}
 \end{document}
