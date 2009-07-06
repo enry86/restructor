@@ -254,9 +254,83 @@ reach an higher accuracy for the query results.
 Obviously the relevance of this entity as a result of the query car = fiat
 is not the same as the one of the previous entry.
 
-The model implemented for deal with this kind of information is composed
-by three tables.
+The model implemented for dealing with this kind of information is
+composed by three tables. The first one is used for the storage of the
+effective data, is called "pairs" and its structure is defined on three
+fields:
+\begin{description}
+\item{pair\_id: } This is the primary key of the table, identifies a pair;
+\item{name: } This field contains the name of the attribute;
+\item{value: } Contains the respective value;
+\end{description}
 
+This table is populated with all the different pairs (attribute name,
+attribute value) encountered reading the dataset. At each pair is
+associated an unique id which is pair\_id.
+
+The name of the attribute doesn't contain any information about its path
+in the entity representation.
+
+An important constraint set in this table is that the pairs name and value
+are unique. This means that in the worst case, where there aren't
+attributes with the same name and the same value among the whole database,
+the table will contain a number of records equal to the number of pairs in
+the original dataset.
+
+Is likely, instead, that many entities share some pair, in this case the
+shared pair will appear only one time in this table.
+
+A second table is used for storing the information about the structure.
+What is needed to be kept is some information about the position of the
+attribute inside the attribute hierarchy of a specific entity.
+In the model implemented the fields of this table, called "attrs" are:
+\begin{description}
+\item{attr\_id: } This is the primary key of the table, identifies an
+attribute;
+\item{name: } This field contains the name of the attribute;
+\item{path: } Contains the path of the attribute from the entity node;
+\end{description}
+
+The term path doesn't refer specifically to the xml concept of path, but
+in general to the attribute is nested inside some other attributes.
+The same concept would work with any other representation of the dataset,
+instead of xml.
+
+Using this table is possible to reconstruct the underlying structure of
+the database, and identify every different attribute present in the
+dataset.
+
+Is important to notice that this table contains only the attributes which,
+appear at least one time in the database with a value associated.
+If an attribute appears only as parent of other attributes in the whole
+dataset, it won't appear in this table.
+
+Even in this case the path is an unique field, so attributes with
+identical structure will appear only one time in the table.
+
+The last table permits to combine the information in the previous two
+tables.
+In fact the third table, called "associations" contains the following
+fields:
+\begin{description}
+\item{entity\_id: } This fields contain the id of the entity which owns
+the pair;
+\item{pair\_id: } This is the id of the pair owned, refers to the pairs
+table;
+\item{attr\_id: } Indicates which particular attribute forms the pair,
+refers to the attrs table;
+\end{description}
+
+This table links the information on the data with the knowledge about the
+structure. Is therefore possible to know exactly the particular attributes
+which form every pair of an entity, and the associated value.
+
+This is the table which present the larger number of records of the three,
+in fact it will contain one row for each pair encountered in the dataset.
+
+\subsection{Query language}
+Before going in further details about the query answering techniques, is
+useful to specify the query languages used to interact with the system.
 
 \bibliographystyle{abbrv}
 \bibliography{report}
