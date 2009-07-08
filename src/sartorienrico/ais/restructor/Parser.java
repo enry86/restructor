@@ -12,6 +12,11 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+/**
+ * This class parses the xml file and stores the informations uses the class Database to store the data
+ * @author enry
+ *
+ */
 public class Parser extends DefaultHandler{
 	
 	private SAXParserFactory spf;
@@ -26,7 +31,11 @@ public class Parser extends DefaultHandler{
 	private ArrayList<String> last;
 	
 	
-	
+	/**
+	 * Initialize the class and the parser
+	 * @param filename name of the file containing the dataset
+	 * @param db instance of Database class
+	 */
 	public Parser(String filename, Database db){
 		spf = SAXParserFactory.newInstance();
 		last = new ArrayList<String>();
@@ -43,6 +52,10 @@ public class Parser extends DefaultHandler{
 		}
 	}
 	
+	/**
+	 * starts the parsing task
+	 * @return the time used for parsing
+	 */
 	public long parse(){
 		long time = 0;
 		time = System.currentTimeMillis();
@@ -58,6 +71,10 @@ public class Parser extends DefaultHandler{
 		return System.currentTimeMillis() - time;
 	}
 	
+	/**
+	 * When a new node is encountered if it's part of the data, the path value is updated and 
+	 * the arraylist last keep track of the node traversed 
+	 */
 	public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException{
 		if (qName.compareTo("entity") != 0 && qName.compareTo("entities") != 0){
 			last.add(0, qName);
@@ -72,6 +89,9 @@ public class Parser extends DefaultHandler{
 		}
 	}
 	
+	/**
+	 * Called when an element is closed, saves the collected value in the database
+	 */
 	public void endElement(String uri, String localName, String qName) throws SAXException{
 		if (qName.compareTo("entity") != 0 && qName.compareTo("entities") != 0){
 			if (qName.compareTo(last.get(0)) == 0){
@@ -90,10 +110,17 @@ public class Parser extends DefaultHandler{
 		}
 	}
 	
+	/**
+	 * Adds the characters to the buffer
+	 */
 	public void characters(char[] ch, int start, int length) throws SAXException {
 		chars.append(ch,start,length);
 	}
 	
+	/**
+	 * reads and flushes the buffer
+	 * @return
+	 */
 	private String getChars(){
 		String res = chars.toString();
 		chars.setLength(0);

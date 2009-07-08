@@ -3,13 +3,25 @@ package sartorienrico.ais.restructor;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+/**
+ * the main class of the RESTRUCTOR program, manages all the activities
+ * of the system
+ * @author enry
+ *
+ */
 public class Restructor {
 	private Database db;
 	private Parser pars;
 	private Console cons;
-		
-	public Restructor(String dataset){
-		db = new Database();
+	
+	/**
+	 * initializes the parser, the database and the command line
+	 * @param dataset filename of the dataset
+	 * @param user username for the database
+	 * @param passwd password for the database
+	 */
+	public Restructor(String dataset, String user, String passwd){
+		db = new Database(user, passwd);
 		System.out.println("RESTRUCTOR - type quit to exit\n");
 		pars = new Parser(dataset,db);
 		long time = pars.parse();
@@ -18,18 +30,33 @@ public class Restructor {
 		cons.input();
 	}
 	
+	/**
+	 * main method, checks the argument passed
+	 * @param args
+	 */
 	public static void main(String[] args) {
 		int err = 0;
 		Restructor r;
 		String dataset;
-		if (args.length != 1) err = 1;
+		String user;
+		String passwd;
+		if (args.length != 3) {
+			err = 1;
+			System.out.println("RESTRUCTOR - usage: restructor <dataset> <username> <password>");
+		}
 		else {
 			dataset = args[0];
-			r = new Restructor(dataset);
+			user = args[1];
+			passwd = args[2];
+			r = new Restructor(dataset, user, passwd);
 		}
 		System.exit(err);
 	}
 	
+	/**
+	 * Prepares the command received for executing the query
+ 	 * @param pairs array containing the pairs read from command line
+	 */
 	public void manage_query(String[] pairs){
 		ResultSet res;
 		String[] tmp;
@@ -45,6 +72,11 @@ public class Restructor {
 		db.clean_tmp();
 	}
 	
+	/**
+	 * outputs the results obtained
+	 * @param res resultset containing the answers to the query
+	 * @param key_num number of conditions used in the query
+	 */
 	private void output_res(ResultSet res, int key_num){
 		System.out.println("Entity | Relevance");
 		try {
@@ -56,6 +88,9 @@ public class Restructor {
 		}
 	}
 	
+	/**
+	 * closes the database
+	 */
 	public void close(){
 		db.close_db();
 	}
