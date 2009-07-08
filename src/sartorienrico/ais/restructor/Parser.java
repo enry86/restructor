@@ -70,7 +70,7 @@ public class Parser extends DefaultHandler{
 			String[] values = tmp.split("[  *]");
 			for (int i = 0; i < values.length; i++){
 				if (values[i].compareTo("") != 0){
-					db.store_attribute(last, values[i], entity, true, path);
+					db.store_attribute(last, values[i], entity, path);
 				}
 			}
 			path = path.replaceAll(last+"/$", "");

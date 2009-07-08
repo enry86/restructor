@@ -19,12 +19,12 @@ public class Database {
 		}
 	}
 	
-	public boolean store_attribute(String name, String value, int entity, boolean has_child, String path){
+	public boolean store_attribute(String name, String value, int entity, String path){
 		boolean res = true;
 		res = insert_pair(name, value);
-		res = insert_attrs(name, has_child, path);
+		res = insert_attrs(name, path);
 		String subsql = "select "+entity+", pair_id, attr_id  from pairs, attrs where pairs.name = attrs.name";
-		String conds = "and pairs.value = '"+value+"' and pairs.name = '"+name+"' and attrs.has_child = "+has_child+" and attrs.path = '"+path+"'";
+		String conds = "and pairs.value = '"+value+"' and pairs.name = '"+name+"' and attrs.path = '"+path+"'";
 		String sql = "insert into associations "+subsql+" "+conds;
 		if (res){
 			try {
@@ -49,9 +49,9 @@ public class Database {
 		return res;
 	}
 	
-	public boolean insert_attrs(String name, boolean has_child, String path){
+	public boolean insert_attrs(String name, String path){
 		boolean res = true;
-		String sql = "insert into attrs values (NULL,'"+name+"',"+has_child+",'"+path+"')";
+		String sql = "insert into attrs values (NULL,'"+name+"','"+path+"')";
 		try {
 			st.executeUpdate(sql);
 		} catch (SQLException e) {

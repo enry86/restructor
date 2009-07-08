@@ -332,6 +332,167 @@ in fact it will contain one row for each pair encountered in the dataset.
 Before going in further details about the query answering techniques, is
 useful to specify the query languages used to interact with the system.
 
+As seen in the previous sections, the information about the entities are
+represented in form of pairs (name, value), for this reason even the
+language used to express the queries should follow the same model.
+
+Precisely a query is represented by a list of expression in the form
+``attribute name : attribute value'' separated by a `,' character.
+So, for example, the following expression is a valid query: 
+
+\begin{verbatim}
+city : trento, street : sommarive
+\end{verbatim}
+
+The result of this query will be the list of the entities which satisfy
+both the element of the query.
+This because the concatenation of the elements is considered as a logical
+AND between the conditions.
+The language can accept an arbitrary number of conditions for a single
+query.
+
+\subsection{Populating the Model}
+The first task performed by the system is to read the input dataset and
+populate the model with the needed data.
+This operation is done by the Parser class, which parse the xml
+representation of the dataset and stores the data in the relative tables.
+
+When a new entity is encountered the names and the values of all its
+attributes are stored in the table `pairs', as said before this table
+doesn't admit duplicates, so it will accept only pairs which appears for
+the first time in the dataset.
+
+For each attribute encountered the system needs to store informations
+about the structure of the data, so it will insert in the `attributes'
+table a tuple containing the name and the path of the attribute.
+Even this table does not permit duplicated values, so a new tuple will be
+added only if represent a new kind of attribute.
+
+Another behaviour to be considered is when a composed attribute is
+encountered, for example the following:
+
+\begin{verbatim}
+<entity id="1">
+    <address>trento via sommarive 14</address>
+</entity>
+\end{verbatim}
+
+In this case many different informations, like city, street or number, are
+collapsed in the only address attribute. The platform deals with this kind
+of attributes dividing the value in single words and treating them as
+different values of the attribute address. An xml representation of the
+obtained values would be the following:
+
+\begin{verbatim}
+<entity id="1">
+    <address>trento</address>
+    <address>via</address>
+    <address>sommarive</address>
+    <address>14</address>
+</entity>
+\end{verbatim}
+
+Finally the third table, the `associations' one, is populated. A tuple of
+this table contains the id of an entity, the id of a pair and the id of an
+attribute structure. The meaning of this association is to tell which
+particular attributes (with their relative structure) belongs to an entity
+and what values they take.
+
+In order to have a clearer idea of the functioning of the model is useful
+to have a concrete example.
+The following xml code represents the dataset:
+
+\begin{verbatim}
+<entities>
+    <entity id="1">
+        <car>fiat punto</car>
+    </entity>
+    <entity id="2">
+        <car>
+            <model>panda</model>
+            <brand>fiat</brand>
+        </car>
+    </entity>
+    <entity id="3">
+        <brand>ford</brand>
+        <model>puma</model>
+        <color>red</color>
+    </entity>
+</entities>
+\end{verbatim}
+
+After the input processing the tuples contained in the table pairs will be
+the same of the table \ref{tabp1}.
+
+\begin{table}
+\begin{tabular}{|c|l|l|}
+\hline
+pair\_id & name & value \\
+\hline
+1 & car & fiat \\ 
+2 & car & punto \\
+3 & model & panda \\ 
+4 & brand & fiat \\
+5 & brand & ford \\
+6 & model & puma \\
+7 & color & red \\
+\hline
+\end{tabular}
+\caption{Content of table `pairs'}
+\label{tabp1}
+\end{table}
+
+The table attrs, instead will contain the structural information
+about the dataset, so it will contain these tuples as reported in table
+\ref{tabat1}.
+
+\begin{table}
+\begin{tabular}{|c|l|l|}
+\hline
+attr\_id & name & path \\
+\hline
+1 & car   & /car/ \\
+2 & model & /car/model/ \\
+3 & brand & /car/brand/ \\
+4 & brand & /brand/ \\
+5 & model & /model/ \\
+6 & color & /color/ \\ 
+\hline
+\end{tabular}
+\caption{Content of table `attrs'}
+\label{tabat1}
+\end{table}
+
+The table associations, will link the information contained in the
+previous tables, permitting to understand which are the attributes owned
+by the various entities. Its data will be like the one in table
+\ref{tabas1}.
+
+\begin{table}
+\begin{tabular}{|c|l|l|}
+\hline
+entity\_id & pair\_id & attr\_id \\
+\hline
+1 & 1 & 1 \\
+1 & 2 & 1 \\
+2 & 3 & 2 \\
+2 & 4 & 3 \\
+3 & 5 & 4 \\
+3 & 6 & 5 \\
+3 & 7 & 6 \\
+\hline
+\end{tabular}
+\caption{Content of table `associations'}
+\label{tabas1}
+\end{table}
+
+\subsection{Query Answering}
+
+
+
+
+
+
 \bibliographystyle{abbrv}
 \bibliography{report}
 \end{document}

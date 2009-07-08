@@ -13,9 +13,8 @@ primary key (`pair_id`));
 create table if not exists `attrs` (
 `attr_id` integer not null auto_increment,
 `name` varchar(30) not null,
-`has_child` boolean not null, 
 `path` varchar(50) not null,
-unique key `attr` (`name`,`has_child`,`path`),
+unique key `attr` (`name`,`path`),
 primary key (`attr_id`));
 
 create table if not exists `associations` (
