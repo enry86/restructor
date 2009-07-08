@@ -10,8 +10,10 @@ public class Restructor {
 		
 	public Restructor(String dataset){
 		db = new Database();
+		System.out.println("RESTRUCTOR - type quit to exit\n");
 		pars = new Parser(dataset,db);
-		pars.parse();
+		long time = pars.parse();
+		System.out.println("Dataset parsed in "+time/1000.0+" sec.");
 		cons = new Console(this);
 		cons.input();
 	}

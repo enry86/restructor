@@ -1,6 +1,7 @@
 package sartorienrico.ais.restructor;
 
 import java.io.IOException;
+import java.util.Date;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -38,14 +39,19 @@ public class Parser extends DefaultHandler{
 		}
 	}
 	
-	public void parse(){
+	public long parse(){
+		long time = 0;
+		time = System.currentTimeMillis();
 		try {
 			sax.parse(filename, this);
 		} catch (SAXException e) {
 			e.printStackTrace();
+			return 0;
 		} catch (IOException e) {
 			e.printStackTrace();
+			return 0;
 		}
+		return System.currentTimeMillis() - time;
 	}
 	
 	public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException{

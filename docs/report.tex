@@ -487,6 +487,194 @@ entity\_id & pair\_id & attr\_id \\
 \end{table}
 
 \subsection{Query Answering}
+This part of the system uses the relational model defined before in order
+to answer to the queries asked by the user.
+The answer to a query is a combination of various interrogation to the
+relational database.
+
+The objective of the queries are to retrieve the identities which satisfy
+the condition posed, searching them across the structural differences
+among the various entries.
+In order to reconstruct the underlying structure of the dataset the system
+selects the following families of attributes:
+\begin{itemize}
+\item Attributes which presents exact correspondence with the name of the
+asked one;
+\item Attributes which appears in the dataset as child of the one asked;
+\item Attributes which appears in the database as parent of the one asked;
+\end{itemize}
+
+The first category of attributes can be queried looking directly in the
+pairs and associations tables, in fact through this second table is
+possible to retrieve the identities which own the asked pair.
+
+The table `attrs' is needed to resolve the other two kinds of attributes,
+in fact the path is needed to retrieve the child of the selected attribute
+and to resolve its parents.
+
+It's important to notice that in this two cases we can find two different
+situations.
+In fact considering the previous example can be noticed that the attribute
+car appears in the dataset as composed by the attributes model and brand. 
+So if the user asks for the attribute car, the system looks even for the
+child attributes, which appear obviously as child of car but
+even independently in the dataset.
+
+Appears clear that these two different kind of attributes will have
+different weights when computing the final result list.
+
+The technique used in this platform is to retrieve the identifiers of all
+the attributes whose path contains the name of the attribute asked.
+In this way is possible to retrieve all the attributes which appears as
+child of the asked one in the dataset.
+
+Instead, is the names of the attributes are retrieved, rather than the
+ids, is possible to retrieve this kind of attributes even in the situation
+where they don't appear as child of the attribute asked. Like, referring
+to the previous example, when model and brand, which are known to be child
+of car, appear at the root level, as in entity 3.
+
+As remarked before the possibility to distinguish between these two cases
+is important to associate an appropriate weight to these queries.
+
+The inverse case, when the system looks for the parent of the attribute
+selected, is handled in similar way.
+In fact, for all the attributes whose name is equal to the one requested
+the system retrieves all the attribute which appear in the path.
+In this way is possible obtain a list of all the attributes which appears
+as parent of the one chosen.
+
+In order to retrieve the name of the attributes from the path it could
+have been possible to parse the string corresponding to the path and
+isolate the single names.
+This technique, besides being simple, has a drawback. In fact it would
+produce a list containing even the attributes which have no value attached
+in the whole dataset, but they appear always as parent of some other
+attribute.
+
+This could lead to waste time performing queries that will give no
+results. The technique used here is to compare the name of the attributes
+selected from the pairs table with the paths retrieved previously. In this
+way all the attributes obtained will surely have a value attached.
+
+\subsection{Results Reporting}
+The last operation performed by RESTRUCTOR, is to report the results of
+the queries operated. This means, specifically, that not all the entities
+returned have the same value with respect to the query asked.
+
+Always referring to the cars dataset presented before, if the user submits
+the query ``brand:fiat'' the system will return the entities 1 and 2.
+But, as is possible to evince from the xml file, entity 2 has a perfect
+correspondence between names and values of the attribute. Entity 1,
+instead, is returned because the attribute brand appears as a child of 
+attribute car, which is owned by this entity.
+
+The relevance of the result ``entity 2'' is therefore higher than the
+other one.
+
+For dealing with this difference in result relevance, the system attaches
+a rank value to the results belonging to the different families seen
+before. In particular, the ranking scheme followed is the following:
+\begin{itemize}
+\item Exact correspondence between attribute names = 100
+\item The entity owns an attribute as child of the one asked = 75
+\item The entity owns an attribute which is parent of the one asked = 50
+\item The entity owns an attribute, which is known to be a child of the
+one asked, but in a free position = 25
+\end{itemize}
+
+As seen in the section about the query language, is possible to specify
+more than one single condition per query. The total rank for a entity,
+which must appear in the result of all the conditions, is the sum of rank
+obtained in the single queries.
+
+To the user, in order to give an intuitive idea of the relevance of his
+results, the score is presented as the percentage of ``points'' scored
+over the total available.
+
+For example, the query ``car : fiat, model : panda''  asked over the cars
+dataset will give as result the entity 2 with relevance of 87.5\%.
+In fact this entity has the attribute model that gives a rank of 100, and
+the attribute brand, which is a known child of car, therefore its rank is
+75. The sum is 175, which corresponds to the 87,5\% of the maximum rank.
+
+From a lower level perspective, this attribution of the ranking is
+performed through the creation of a temporary table which contains the
+results of the different queries performed.
+The fields of this table are the following:
+
+\begin{description}
+\item{entity\_id: } The id of an entity which satisfies one of the
+condition of the query.
+\item{rank: } The rank associated to the family of the attribute which
+satisfies the query condition
+\item{num: } An identifier for the condition satisfied by the entity
+\end{description}
+
+The results of the single queries are directly stored in this table with
+the needed information attached. Then the system selects from this table
+all the entities which satisfies all the condition expressed, sums the
+ranks obtained and outputs the results with the percentage representing
+the relevance.
+
+\subsubsection{Special case}
+The system can handle a particular case in results reporting, in fact in
+can happen that a single entity appears more time among the results of a
+single query.
+An example can clarify this sentence:
+
+\begin{verbatim}
+<entity id="1">
+    <lives>
+        <address>
+            <city>molveno</city>
+            <street>paganella</street>
+            <number>23</number>
+        </address>
+    </lives>
+    <works>
+        <address>paganella</address>
+    </works>
+</entity>
+\end{verbatim}
+
+If the user asks the query ``street : paganella'', the entity 1 is
+returned with rank 100 because of the exact correspondence between the
+street attribute.
+But this entity contains even an address attribute, which appears as
+parent of street in the dataset, for this reason the same entity is
+returned a second time, this time with rank 50, for a single query.
+
+The total measure of relevance will show a good 150\%, which obviously
+should be not considered a valid result.
+In order to prevent this kind of issues the result table is grouped by the
+entity id and the number of the query before computing the relevance.
+In this way the platform avoids having the same entity appearing more time
+among the results of a single query.
+
+The rank used is the higher obtained in case of multiple appearances in a
+single query.
+In the example reported before, the rank for the entity 1 for this query
+would be 100, because it's the maximum value reached.
+
+\section{TESTING}
+The test of the project has been directed in two main directions: to study
+the behaviour of the system in particular situation, and, otherwise test
+the platform on larger datasets.
+
+To test large datasets a little python script has been developed inside
+the project, the goal of this software is to generate a large dataset.
+During testing has been used datasets with maximum 100000 entities with 3
+or 4 attributes for each.
+
+This tests has shown how the operation which takes more time is to parse
+the dataset and populate the relational model with the data. The time
+taken to answer the queries, remains usually very low.
+In fact the system is designed to rely deeply on a database engine, and
+avoids to retrieve data from the database to perform analysis.
+
+The technique used, instead, uses the instrument provided by the database
+engine, and this contributes to keep the performances acceptable.
 
 
 
