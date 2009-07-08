@@ -10,7 +10,7 @@ dataspaces}
 This work presents a framework, called RESTRUCTOR, which permits to
 perform queries on dataspaces characterized by structural heterogeneity.
 The system implemented builds a relational representation of the relevant
-informations contained in the dataset and uses this model for performing
+informations contained in the dataset and uses this model to perform
 queries.
 
 The proposed model deals with differences at the structural level of the
@@ -665,7 +665,7 @@ the platform on larger datasets.
 To test large datasets a little python script has been developed inside
 the project, the goal of this software is to generate a large dataset.
 During testing has been used datasets with maximum 100000 entities with 3
-or 4 attributes for each.
+or 4 attributes for each one.
 
 This tests has shown how the operation which takes more time is to parse
 the dataset and populate the relational model with the data. The time
@@ -675,11 +675,67 @@ avoids to retrieve data from the database to perform analysis.
 
 The technique used, instead, uses the instrument provided by the database
 engine, and this contributes to keep the performances acceptable.
+As it was predictable the time used for populating the model grows
+linearly with the dimension of the input dataset.
 
+An example of the times taken for the parsing operation are shown in table
+\ref{tabtime}.
 
+\begin{table}
+\begin{tabular}{|c|c|c|}
+\hline
+Entities & Attributes & Time (s) \\
+\hline
+100 & 300 & 0.35 \\
+1000 & 3000 & 1.77 \\
+10000 & 30000 & 15.5 \\
+100000 & 300000 & 143.5 \\
+\hline
+\end{tabular}
+\caption{Cost of model populating in time}
+\label{tabtime}
+\end{table}
 
+In order to test the quality of the answer obtained has been used a set of
+particular input, aimed to run the system in some specific configurations.
+This test cases regards specifically particular nesting condition
+encountered in the dataset.
+The tests confirmed the expectations for the query result.
 
+As far as what concerns the usage of space, the constraint of uniqueness
+valid for the tables pairs and attributes force these table to have a
+number of rows less or equal to the number of attributes present in the
+dataset.
+Anyway in a common dataset, most likely these table will have less entries
+than the number of original attributes.
 
+The table associations, instead, will have a number of rows equal to the
+number of pairs in the dataset.
+
+The choice of splitting the database in this three tables has been taken
+to aviod the situation (as for \cite{dong:indexing}) to have a single
+table with a variable number of columns (the number of entities) with many
+null values.
+
+All the test has been performed on a intel t7100 machine, running Debian
+Squeeze OS. The software is implemented in java, using OpenJDK 1.6.0 as
+jre.
+
+\section{CONCLUSIONS}
+The aim of the project was to develop a platform providing support for
+answer queries against a dataspace featuring heterogeneousness at
+structural level.
+The platform implemented responds to these requirement attempting to
+reconstruct the underlying structure among the entities in the dataset.
+
+In order to keep the performances at a good level, the system relies on a
+relational database for handling the data. This leads to high efficiency
+regarding the time used for query answering and the usage of memory.
+
+Possible development can be aimed to implement additional techniques for
+resolve bindings between different attributes. Another possible
+improvement can be in the section used for read the dataset, operation
+which consumes a relevant amount of time.
 
 \bibliographystyle{abbrv}
 \bibliography{report}

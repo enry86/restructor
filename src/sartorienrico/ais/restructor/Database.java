@@ -1,7 +1,11 @@
 package sartorienrico.ais.restructor;
 
 import java.sql.*;
-
+/**
+ * This class implements all the method needed to interact with the database
+ * @author enry
+ *
+ */
 public class Database {
 	private Statement st;
 	private Connection con;
@@ -73,6 +77,7 @@ public class Database {
 			query_second(names[i], values[i], i);
 			query_third(names[i], values[i], i);
 			query_fourth(names[i], values[i], i);
+			query_fifth(names[i], values[i], i);
 		}
 		String sub_sql = "select entity_id, max(rank) as ranking from results group by entity_id,num";
 		
@@ -107,7 +112,7 @@ public class Database {
 	
 	public int query_second(String name, String value, int num){
 		int res = -1;
-		String con_sec = "pairs.name in (select name from attrs where attrs.path like '%"+name+"/%' and attrs.name != '"+name+"')";
+		String con_sec = "pairs.name in (select name from attrs where attrs.path like '%/"+name+"/%' and attrs.name != '"+name+"')";
 		String sql = "select distinct entity_id, 75 as rank, "+num+" as num from associations, pairs, attrs where associations.attr_id = attrs.attr_id and attrs.path like '%"+name+"/%' and pairs.pair_id = associations.pair_id and value = '"+value+"' and "+con_sec;
 		try {
 			res = st.executeUpdate("insert into results "+sql);
@@ -117,6 +122,7 @@ public class Database {
 		return res;
 	}
 	
+
 	public int query_third(String name, String value, int num){
 		int res = -1;
 		String sub_sql = "select t1.name from attrs as t1, ( select * from attrs where name = '"+name+"' ) as t2 where t2.path like  concat('%/', t1.name, '/%') and t1.name != '"+name+"'";
@@ -131,7 +137,19 @@ public class Database {
 	
 	public int query_fourth(String name, String value, int num){
 		int res = -1;
-		String con_sec = "pairs.name in (select name from attrs where attrs.path like '%"+name+"/%' and attrs.name != '"+name+"')";
+		String con_sec = "pairs.name in (select t1.name from attrs as t1, attrs as t2 where t2.path like '%/"+name+"/%' and locate(concat('/', t1.name, '/'), t2.path) > locate('/"+name+"/', t2.path))";
+		String sql = "select distinct entity_id, 25 as rank, "+num+" as num from associations, pairs, attrs where associations.attr_id = attrs.attr_id and pairs.pair_id = associations.pair_id and value = '"+value+"' and "+con_sec;
+		try {
+			res = st.executeUpdate("insert into results "+sql);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return res;
+	}
+	
+	public int query_fifth(String name, String value, int num){
+		int res = -1;
+		String con_sec = "pairs.name in (select name from attrs where attrs.path like '%/"+name+"/%' and attrs.name != '"+name+"')";
 		String sql = "select distinct entity_id, 25 as rank, "+num+" as num from associations, pairs, attrs where associations.attr_id = attrs.attr_id and attrs.path not like '%"+name+"/%' and pairs.pair_id = associations.pair_id and value = '"+value+"' and "+con_sec;
 		try {
 			res = st.executeUpdate("insert into results "+sql);

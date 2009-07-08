@@ -1,6 +1,7 @@
 package sartorienrico.ais.restructor;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -22,10 +23,13 @@ public class Parser extends DefaultHandler{
 	private int entity;
 	
 	private String path;
-	private String last;
+	private ArrayList<String> last;
+	
+	
 	
 	public Parser(String filename, Database db){
 		spf = SAXParserFactory.newInstance();
+		last = new ArrayList<String>();
 		this.filename = filename;
 		this.db = db;
 		chars = new StringBuffer();
@@ -56,7 +60,7 @@ public class Parser extends DefaultHandler{
 	
 	public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException{
 		if (qName.compareTo("entity") != 0 && qName.compareTo("entities") != 0){
-			last = qName;
+			last.add(0, qName);
 			path += qName + "/"; 
 		}
 		else {
@@ -69,18 +73,20 @@ public class Parser extends DefaultHandler{
 	}
 	
 	public void endElement(String uri, String localName, String qName) throws SAXException{
-		if (qName.compareTo(last) == 0){
-			String tmp = getChars();
-			tmp = tmp.replaceAll("\n", " ");
-			tmp = tmp.replaceAll("  *", " ");
-			String[] values = tmp.split("[  *]");
-			for (int i = 0; i < values.length; i++){
-				if (values[i].compareTo("") != 0){
-					db.store_attribute(last, values[i], entity, path);
+		if (qName.compareTo("entity") != 0 && qName.compareTo("entities") != 0){
+			if (qName.compareTo(last.get(0)) == 0){
+				String tmp = getChars();
+				tmp = tmp.replaceAll("\n", " ");
+				tmp = tmp.replaceAll("  *", " ");
+				String[] values = tmp.split("[  *]");
+				for (int i = 0; i < values.length; i++){
+					if (values[i].compareTo("") != 0){
+						db.store_attribute(last.get(0), values[i], entity, path);
+					}
 				}
+				path = path.replaceAll(last.get(0)+"/$", "");
+				last.remove(0);
 			}
-			path = path.replaceAll(last+"/$", "");
-			
 		}
 	}
 	
